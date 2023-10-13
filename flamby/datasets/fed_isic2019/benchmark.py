@@ -45,10 +45,10 @@ def train_model(
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
 
-    print(
-        "Test metric before training",
-        evaluate_model_on_tests(model, [dataloaders["test"]], metric, use_gpu=True),
-    )
+    # print(
+    #     "Test metric before training",
+    #     evaluate_model_on_tests(model, [dataloaders["test"]], metric, use_gpu=True),
+    # )
 
     for epoch in range(num_epochs):
         print("Epoch {}/{}".format(epoch, num_epochs - 1))
@@ -212,6 +212,9 @@ def main(args):
     dest_file = os.path.join(script_directory, dic["model_dest"])
     torch.save(model.state_dict(), dest_file)
 
+    # save model
+    model_path = f'/home/tongnian/FLamby/flamby/datasets/fed_isic2019/model_cen.pt'       
+    torch.save(model.state_dict(), model_path)
 
 if __name__ == "__main__":
 

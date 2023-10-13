@@ -76,43 +76,47 @@ def main(num_workers_torch, use_gpu=True, gpu_id=0, log=False):
         if torch.cuda.is_available() and use_gpu:
             m = m.cuda()
 
-        loss = BaselineLoss()
-        optimizer = Optimizer(m.parameters(), lr=LR)
-
-        if log:
-            # Create one SummaryWriter for each seed in order to overlay the plots
-            writer = SummaryWriter(log_dir=f"./runs/seed{seed}")
-
-        for e in tqdm(range(NUM_EPOCHS_POOLED)):
-            m.train()
-            tot_loss = 0
-            for X, y in training_dl:
-                if torch.cuda.is_available() and use_gpu:
-                    X = X.cuda()
-                    y = y.cuda()
-
-                optimizer.zero_grad()
-                y_pred = m(X)
-                lm = loss(y_pred, y)
-                lm.backward()
-                optimizer.step()
-
-                tot_loss += lm.item()
-
-            print(f"epoch {e} avg loss: {tot_loss / num_local_steps_per_epoch:.2e}")
+            loss = BaselineLoss()
+            optimizer = Optimizer(m.parameters(), lr=LR)
 
             if log:
-                writer.add_scalar(
-                    "Loss/train/client", tot_loss / num_local_steps_per_epoch, e
-                )
+                # Create one SummaryWriter for each seed in order to overlay the plots
+                writer = SummaryWriter(log_dir=f"./runs/seed{seed}")
 
-        # Finally, evaluate DICE
-        current_results_dict = evaluate_model_on_tests(
-            m, [test_dl], metric, use_gpu=use_gpu
-        )
-        print(current_results_dict)
+            for e in tqdm(range(NUM_EPOCHS_POOLED)):
+                m.train()
+                tot_loss = 0
+                for X, y in training_dl:
+                    if torch.cuda.is_available() and use_gpu:
+                        X = X.cuda()
+                        y = y.cuda()
 
-        results.append(current_results_dict["client_test_0"])
+                    optimizer.zero_grad()
+                    y_pred = m(X)
+                    lm = loss(y_pred, y)
+                    lm.backward()
+                    optimizer.step()
+
+                    tot_loss += lm.item()
+
+                print(f"epoch {e} avg loss: {tot_loss / num_local_steps_per_epoch:.2e}")
+
+                if log:
+                    writer.add_scalar(
+                        "Loss/train/client", tot_loss / num_local_steps_per_epoch, e
+                    )
+            
+            # save model
+            model_path = f'/home/tongnian/FLamby/flamby/datasets/fed_ixi/model_{seed}.pt'       
+            torch.save(m.state_dict(), model_path)
+
+            # Finally, evaluate DICE
+            current_results_dict = evaluate_model_on_tests(
+                m, [test_dl], metric, use_gpu=use_gpu
+            )
+            print(current_results_dict)
+
+            results.append(current_results_dict["client_test_0"])
 
     results = np.array(results)
 

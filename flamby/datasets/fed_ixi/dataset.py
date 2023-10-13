@@ -91,7 +91,10 @@ class IXITinyRaw(Dataset):
             _extract_center_name_from_filename(subject) for subject in self.subjects
         ]
 
-        self.demographics = Path(os.path.join(self.subjects_dir, "IXI.xls"))
+        # self.demographics = Path(os.path.join(self.subjects_dir, "IXI.xls"))
+        self.demographics = pd.read_csv("/home/tongnian/FLamby/flamby/datasets/fed_ixi/dataset_creation_scripts/IXI-Dataset/7kd5wj7v7p-3/IXI_sample/demographics.csv")
+        # self.sens_attr = self.demographics["SEX_ID (1=m, 2=f)"]
+        self.sens_attr = self.demographics["AGE"]
 
         for subject in self.subjects:
             patient_id = _get_id_from_filename(subject)
@@ -153,6 +156,7 @@ class IXITinyRaw(Dataset):
         label = default_transform(label)
         label = one_hot_transform(label)
 
+        sens = self.sens_attr.iloc[item]
         # metadata = {
         #     "IXI_ID": patient_id,
         #     "center": center_name,
@@ -161,7 +165,7 @@ class IXITinyRaw(Dataset):
 
         if self.transform:
             img = self.transform(img)
-        return img.to(torch.float32), label
+        return img.to(torch.float32), label, sens
 
     def __len__(self) -> int:
         return len(self.images_paths)

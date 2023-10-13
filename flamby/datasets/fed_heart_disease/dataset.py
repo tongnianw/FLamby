@@ -118,12 +118,22 @@ class HeartDiseaseRaw(Dataset):
                 stratify=stratify,
             )
 
+            ##############################################
+            AGE_VALUE = 60
+            SEX_VALUE = 1.0
             for i in np.arange(nb):
                 if i in indices_test:
                     self.sets.append("test")
+                    # if self.features.iloc[i, 0]==AGE_VALUE: # sex-->iloc[i, 1], age-->iloc[i, 0]
+                    #     self.sets.append("test")
+                    # else:
+                    #     self.sets.append("unused")
                 else:
                     self.sets.append("train")
 
+        self.sens = self.features.iloc[:, 1] # sex
+        # self.sens = self.features.iloc[:, 0] # age
+        ##################################################
         # encode dummy variables for categorical variables
         self.features = pd.get_dummies(self.features, columns=[2, 6], drop_first=True)
         self.features = [
@@ -176,7 +186,6 @@ class HeartDiseaseRaw(Dataset):
         self.std_of_features_pooled_train = features_tensor_train.std(axis=0)
 
         # We convert everything back into lists
-
         self.mean_of_features = torch.split(self.mean_of_features, 1)
         self.std_of_features = torch.split(self.std_of_features, 1)
         self.mean_of_features_pooled_train = [
@@ -192,6 +201,7 @@ class HeartDiseaseRaw(Dataset):
 
     def __getitem__(self, idx):
         assert idx < len(self.features), "Index out of range."
+
         if self.normalize:
             X = (self.features[idx] - self.mean_of_features[idx]) / (
                 self.std_of_features[idx] + 1e-9
@@ -203,7 +213,9 @@ class HeartDiseaseRaw(Dataset):
         X = X.reshape((13))
         y = y.reshape((1))
 
-        return X, y
+        s = self.sens[idx]
+
+        return X, y, s
 
 
 class FedHeartDisease(HeartDiseaseRaw):

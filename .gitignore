@@ -506,3 +506,14 @@ events.out.tfevents.*
 
 # License agreements should not be tracked
 flamby/datasets/*/dataset_creation_scripts/license_agreement*
+
+IXI-Dataset
+*.zip
+*.pt
+ISIC_2019*
+saved_model_state_dict
+*.csv
+*.data
+dataset_creation_scripts
+.*
+test.*

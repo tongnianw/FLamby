@@ -55,7 +55,7 @@ def main(num_workers_torch, log=False, log_period=10, debug=False, cpu_only=Fals
         )
 
     results = []
-    seeds = np.arange(42, 47).tolist()
+    seeds = np.arange(42, 43).tolist()
     for seed in seeds:
         # At each new seed we re-initialize the model
         # and training_dl is shuffled as well
@@ -75,11 +75,12 @@ def main(num_workers_torch, log=False, log_period=10, debug=False, cpu_only=Fals
                 # At each epoch we look at the histograms of all the network's parameters
                 for name, p in m.named_parameters():
                     writer.add_histogram(f"client_0/{name}", p, e)
-            for s, (X, y) in enumerate(training_dl):
+            for s, (X, y, sens) in enumerate(training_dl):
                 # traditional training loop with optional GPU transfer
                 if use_gpu:
                     X = X.cuda()
                     y = y.cuda()
+                    sens = sens.cuda()
 
                 optimizer.zero_grad()
                 y_pred = m(X)
@@ -118,7 +119,7 @@ def main(num_workers_torch, log=False, log_period=10, debug=False, cpu_only=Fals
             writer.add_scalar("AUC-test", results[i], 0)
 
     print("Benchmark Results on Heart Disease pooled:")
-    print(f"mAUC on 5 runs: {results.mean(): .2%} \\pm {results.std(): .2%}")
+    print(f"mAUC on {len(seeds)} runs: {results.mean(): .2%} \\pm {results.std(): .2%}")
 
 
 if __name__ == "__main__":
